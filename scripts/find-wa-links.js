@@ -1,6 +1,33 @@
-const { readFileSync } = require('fs');
+import { readFileSync, readdirSync } from 'fs';
+import { resolve, join } from 'path';
 
-const content = readFileSync('/vercel/share/v0-project/nio/static/js/main.dc89b634.js', 'utf-8');
+// Debug: find the file
+console.log("CWD:", process.cwd());
+console.log("Dir contents:", readdirSync('.'));
+
+// Try multiple paths
+const paths = [
+  'nio/static/js/main.dc89b634.js',
+  '../nio/static/js/main.dc89b634.js',
+  '/home/user/nio/static/js/main.dc89b634.js',
+  '/vercel/share/v0-project/nio/static/js/main.dc89b634.js',
+];
+
+let content = null;
+for (const p of paths) {
+  try {
+    content = readFileSync(p, 'utf-8');
+    console.log("Found file at:", p);
+    break;
+  } catch (e) {
+    console.log("Not at:", p);
+  }
+}
+
+if (!content) {
+  console.log("Could not find the JS file");
+  process.exit(1);
+}
 
 // Find all wa.me URLs
 const regex = /https?:\/\/wa\.me[^\s"'`,)}\]\\]*/g;
