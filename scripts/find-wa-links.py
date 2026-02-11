@@ -1,14 +1,7 @@
 import os
 import re
-import subprocess
 
-# Find the JS file
-result = subprocess.run(['find', '/', '-name', 'main.dc89b634.js', '-type', 'f'], 
-                       capture_output=True, text=True, timeout=10)
-print("Find result:", result.stdout)
-print("Find errors:", result.stderr[:500] if result.stderr else "none")
-
-# Also try to read from the project path
+# Try multiple paths
 for base in ['/vercel/share/v0-project', '/vercel/share', '/home/user', '.']:
     path = os.path.join(base, 'nio', 'static', 'js', 'main.dc89b634.js')
     if os.path.exists(path):
@@ -16,26 +9,36 @@ for base in ['/vercel/share/v0-project', '/vercel/share', '/home/user', '.']:
         with open(path) as f:
             content = f.read()
         
-        matches = re.findall(r'https?://wa\.me[^\s"\'`,)}\]\\]*', content)
-        if matches:
-            print("WhatsApp URLs found:")
-            for i, m in enumerate(matches):
-                idx = content.index(m)
-                start = max(0, idx - 80)
-                end = min(len(content), idx + len(m) + 80)
-                print(f"\n--- Match {i+1} ---")
-                print(f"URL: {m}")
-                print(f"Context: ...{content[start:end]}...")
+        # Search for LFYNCWLVBJGVN1
+        idx = content.find('LFYNCWLVBJGVN1')
+        if idx >= 0:
+            start = max(0, idx - 200)
+            end = min(len(content), idx + 200)
+            print(f"\nContext around LFYNCWLVBJGVN1 (pos {idx}):")
+            print(repr(content[start:end]))
         else:
-            print("No wa.me URLs found directly")
-            # broader search
-            broader = list(re.finditer(r'whatsapp|wa\.me', content, re.IGNORECASE))
-            print(f"Broader search: {len(broader)} matches")
-            for i, m in enumerate(broader):
-                idx = m.start()
-                start = max(0, idx - 100)
-                end = min(len(content), idx + len(m.group()) + 100)
-                print(f"\nMatch {i+1}: ...{content[start:end]}...")
+            print("LFYNCWLVBJGVN1 not found")
+        
+        # Also search for api.whatsapp
+        idx2 = content.find('api.whatsapp')
+        if idx2 >= 0:
+            start = max(0, idx2 - 200)
+            end = min(len(content), idx2 + 200)
+            print(f"\nContext around api.whatsapp (pos {idx2}):")
+            print(repr(content[start:end]))
+        else:
+            print("api.whatsapp not found")
+
+        # Also search for wa.me
+        idx3 = content.find('wa.me')
+        if idx3 >= 0:
+            start = max(0, idx3 - 200)
+            end = min(len(content), idx3 + 200)
+            print(f"\nContext around wa.me (pos {idx3}):")
+            print(repr(content[start:end]))
+        else:
+            print("wa.me not found")
+        
         break
 else:
     print("File not found at any expected path")
