@@ -1,39 +1,24 @@
-import re
 import os
+import re
+import glob
 
-# Try multiple possible paths
-paths = [
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'nio', 'static', 'js', 'main.dc89b634.js'),
-    '/vercel/share/v0-project/nio/static/js/main.dc89b634.js',
-    '/home/user/nio/static/js/main.dc89b634.js',
-]
+cwd = os.getcwd()
+print("CWD:", cwd)
 
-file_path = None
-for p in paths:
-    rp = os.path.realpath(p)
-    print(f'Trying: {rp}')
-    if os.path.exists(rp):
-        file_path = rp
-        print(f'Found: {rp}')
-        break
+# Find all JS files recursively from cwd
+js_files = glob.glob(os.path.join(cwd, '**', '*.js'), recursive=True)
+print("JS files:", js_files)
 
-if not file_path:
-    print('File not found, listing scripts dir parent:')
-    parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    for item in os.listdir(parent):
-        print(f'  {item}')
-    exit(1)
+# Also try /vercel paths
+for base in ['/vercel', '/home']:
+    js_files += glob.glob(os.path.join(base, '**', 'main.dc89b634.js'), recursive=True)
 
-with open(file_path, 'r') as f:
-    content = f.read()
-
-matches = re.findall(r'https?://wa\.me/[^\s"\')\]]+', content)
-print('Links encontrados:', matches)
-
-new_link = 'https://wa.me/5511998822059'
-new_content = re.sub(r'https?://wa\.me/[^\s"\')\]]+', new_link, content)
-
-with open(file_path, 'w') as f:
-    f.write(new_content)
-
-print('Substituido com sucesso para:', new_link)
+for f in js_files:
+    content = open(f, 'r').read()
+    if 'wa.me' in content:
+        print(f"Found wa.me in: {f}")
+        idx = content.index('wa.me')
+        print(f"Context: {content[max(0,idx-60):idx+60]}")
+        new_content = re.sub(r'https?://wa\.me/[0-9]+', 'https://wa.me/5511998822059', content)
+        open(f, 'w').write(new_content)
+        print("Done!")
